@@ -55,12 +55,12 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d); do
     # If this dir is not a repo, and WARN_NOT_REPO is 1, tell the user.
     if [ \! -d "$GIT_DIR" ]; then
         if [ "$WARN_NOT_REPO" -eq 1 ]; then
-            printf "${PROJ_DIR}: not a git repo\n"
+            printf "${PROJ_DIR} Not a git repo\n"
         fi
         continue
     fi
 
-    printf "${PROJ_DIR}: "
+    printf "${PROJ_DIR} "
 
     [ $DEBUG -eq 1 ] && echo
 
@@ -71,7 +71,7 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d); do
     # they need a push or pull. We do this with various tests and put the name
     # of the branches in NEEDS_XXXX, seperated by newlines. After we're done,
     # we remove duplicates from NEEDS_XXX.
-    NEEDS_PUSH_BRANCHES="" 
+    NEEDS_PUSH_BRANCHES=""
     NEEDS_PULL_BRANCHES=""
 
     for REF_HEAD in $(ls $GIT_DIR/refs/heads); do
@@ -145,7 +145,7 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d); do
         STATUS_NEEDS="${STATUS_NEEDS}${C_UNTRACKED}Untracked files${C_RESET} "
     fi
     if [ "$STATUS_NEEDS" = "" ]; then
-        STATUS_NEEDS="${STATUS_NEEDS}${C_OK}ok${C_RESET} "
+        STATUS_NEEDS="${STATUS_NEEDS}${C_OK}Ok${C_RESET} "
     fi
 
     # Print the output
