@@ -53,7 +53,7 @@ else
 fi
 
 # Find all .git dirs, up to DEPTH levels deep
-for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d); do
+for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
     GIT_DIR="$PROJ_DIR/.git"
 
     # Skip '.' and '..'
