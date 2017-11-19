@@ -1,13 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 # MIT license
 
-# C_RED="\033[1;31m"
-# C_YELLOW="\033[1;33m"
-# C_BLUE="\033[1;34m"
-# C_CYAN="\033[1;36m"
-# C_WHITE="\033[1;37m"
-# C_GREEN="\033[1;32m"
 C_RED="$(tput setaf 1)"
 C_YELLOW="$(tput setaf 3)"
 C_BLUE="$(tput setaf 4)"
@@ -26,11 +20,16 @@ C_OK="$C_GREEN"
 DEBUG=0
 
 if [ "$1" = "--help" ]; then
+    echo
+    echo "Scan for .git dirs and show git status"
+    echo
     echo "Usage: $0 [-w] [DIR] [DEPTH=2]" >&2
     echo
-    echo "Scan for .git dirs under DIR (up to DEPTH dirs deep) and show git status"
+    echo "If no argument is given, it uses 'locate' command"
     echo
-    echo "  -w   Warn about dirs that are not Git repositories"
+    echo "Otherwise it uses 'find' command under 'DIR' (up to 'DEPTH' dirs deep)"
+    echo
+    echo "In such case, '-w' warns about dirs that are not Git repositories"
     exit 1
 fi
 
@@ -41,30 +40,35 @@ if [ "$1" = "-w" ]; then
 fi
 
 if [ -z "$1" ]; then
-    ROOT_DIR="."
+    # ROOT_DIR="."
+    # Using locate to automatically find all .git dirs in database
+    DIR_LIST=$(locate -Lbr '\.git$'  | rev | cut -c 6- | rev)
 else
     ROOT_DIR=$1
+    if [ -z "$2" ]; then
+        DEPTH=2
+    else
+        DEPTH=$2
+    fi
+    # Find all dirs, up to DEPTH levels deep
+    DIR_LIST=$(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort)
 fi
 
-if [ -z "$2" ]; then
-    DEPTH=2
-else
-    DEPTH=$2
-fi
+IFS=$'\n'
+for PROJ_DIR in $DIR_LIST; do
 
-# Find all .git dirs, up to DEPTH levels deep
-for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
     GIT_DIR="$PROJ_DIR/.git"
 
-    # Skip '.' and '..'
-    [ "$PROJ_DIR" = "." -o "$GIT_DIR" = ".." ] && continue
-
-    # If this dir is not a repo, and WARN_NOT_REPO is 1, tell the user.
-    if [ \! -d "$GIT_DIR" ]; then
-        if [ "$WARN_NOT_REPO" -eq 1 ]; then
-            printf "${PROJ_DIR} Not a git repo\n"
+    if [ ! -z "$1" ]; then
+        # Skip '.' and '..'
+        [ "$PROJ_DIR" = "." -o "$GIT_DIR" = ".." ] && continue
+        # If this dir is not a repo, and WARN_NOT_REPO is 1, tell the user.
+        if [ \! -d "$GIT_DIR" ]; then
+            if [ "$WARN_NOT_REPO" -eq 1 ]; then
+                printf "${PROJ_DIR} Not a git repo\n"
+            fi
+            continue
         fi
-        continue
     fi
 
     printf "${PROJ_DIR} "
@@ -72,7 +76,7 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
     [ $DEBUG -eq 1 ] && echo
 
     # Refresh the index, or we might get wrong results.
-    git --work-tree $(dirname $GIT_DIR) --git-dir $GIT_DIR update-index -q --refresh >/dev/null 2>&1
+    git --work-tree $(dirname "$GIT_DIR") --git-dir "$GIT_DIR" update-index -q --refresh >/dev/null 2>&1
 
     # Find all remote branches that have been checked out and figure out if
     # they need a push or pull. We do this with various tests and put the name
@@ -81,13 +85,13 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
     NEEDS_PUSH_BRANCHES=""
     NEEDS_PULL_BRANCHES=""
 
-    for REF_HEAD in $(ls $GIT_DIR/refs/heads); do
+    for REF_HEAD in $(ls "$GIT_DIR"/refs/heads); do
         # Check if this branch is tracking a remote branch
-        TRACKING_REMOTE=$(git --git-dir $GIT_DIR rev-parse --abbrev-ref --symbolic-full-name $REF_HEAD@{u} 2>/dev/null)
+        TRACKING_REMOTE=$(git --git-dir "$GIT_DIR" rev-parse --abbrev-ref --symbolic-full-name $REF_HEAD@{u} 2>/dev/null)
         if [ $? -eq 0 ]; then
             # Branch is tracking a remote branch. Find out how much behind /
             # ahead it is of that remote branch.
-            CNT_AHEAD_BEHIND=$(git --git-dir $GIT_DIR rev-list --left-right --count $REF_HEAD...$TRACKING_REMOTE)
+            CNT_AHEAD_BEHIND=$(git --git-dir "$GIT_DIR" rev-list --left-right --count $REF_HEAD...$TRACKING_REMOTE)
             CNT_AHEAD=$(echo $CNT_AHEAD_BEHIND | awk '{ print $1 }')
             CNT_BEHIND=$(echo $CNT_AHEAD_BEHIND | awk '{ print $2 }')
 
@@ -106,9 +110,9 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
             :
         fi
 
-        REV_LOCAL=$(git --git-dir $GIT_DIR rev-parse --verify $REF_HEAD 2>/dev/null)
-        REV_REMOTE=$(git --git-dir $GIT_DIR rev-parse --verify origin/$REF_HEAD 2>/dev/null)
-        REV_BASE=$(git --git-dir $GIT_DIR merge-base $REF_HEAD origin/$REF_HEAD 2>/dev/null)
+        REV_LOCAL=$(git --git-dir "$GIT_DIR" rev-parse --verify $REF_HEAD 2>/dev/null)
+        REV_REMOTE=$(git --git-dir "$GIT_DIR" rev-parse --verify origin/$REF_HEAD 2>/dev/null)
+        REV_BASE=$(git --git-dir "$GIT_DIR" merge-base $REF_HEAD origin/$REF_HEAD 2>/dev/null)
 
         [ $DEBUG -eq 1 ] && echo REV_LOCAL: $REV_LOCAL
         [ $DEBUG -eq 1 ] && echo REV_REMOTE: $REV_REMOTE
@@ -131,11 +135,11 @@ for PROJ_DIR in $(find -L $ROOT_DIR -maxdepth $DEPTH -type d | sort); do
     NEEDS_PULL_BRANCHES=$(printf "$NEEDS_PULL_BRANCHES" | sort | uniq | tr '\n' ',' | sed "s/^,\(.*\),$/\1/")
 
     # Find out if there are uncomitted changes
-    UNSTAGED=$(git --work-tree $(dirname $GIT_DIR) --git-dir $GIT_DIR diff-index --quiet HEAD --; echo $?)
-    UNCOMMITTED=$(git --work-tree $(dirname $GIT_DIR) --git-dir $GIT_DIR diff-files --quiet --ignore-submodules --; echo $?)
+    UNSTAGED=$(git --work-tree $(dirname "$GIT_DIR") --git-dir "$GIT_DIR" diff-index --quiet HEAD --; echo $?)
+    UNCOMMITTED=$(git --work-tree $(dirname "$GIT_DIR") --git-dir "$GIT_DIR" diff-files --quiet --ignore-submodules --; echo $?)
 
     # Find out if there are untracked changes
-    UNTRACKED=$(git --work-tree $(dirname $GIT_DIR) --git-dir $GIT_DIR ls-files --exclude-standard --others)
+    UNTRACKED=$(git --work-tree $(dirname "$GIT_DIR") --git-dir "$GIT_DIR" ls-files --exclude-standard --others)
 
     # Build up the status string
     STATUS_NEEDS=""
