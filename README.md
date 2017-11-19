@@ -43,25 +43,25 @@ The following example scans all directories under the current dir, with a
 depth of 2. That means the current dir and all directories directly under it.
 
     ~/Projects/fboender $ mgitstatus
-    ./multi-git-status: ok
-    ./mdpreview: ok
-    ./snippets: ok
-    ./boxes: ok
-    ./ansible-cmdb: Uncommitted changes Untracked files
-    ./scriptform: Uncommitted changes
+    ./multi-git-status Ok
+    ./mdpreview Ok
+    ./snippets Ok
+    ./boxes Ok
+    ./ansible-cmdb Untracked files Uncommitted changes
+    ./scriptform Uncommitted changes
 
 To scan deeper:
 
     ~/Projects $ mgitstatus . 3
-    ./megacorp/ansible: ok
-    ./megacorp/monitoring: ok
-    ./fboender/multi-git-status: ok
-    ./fboender/mdpreview: ok
-    ./fboender/snippets: ok
-    ./fboender/boxes: ok
-    ./fboender/ansible-cmdb: Uncommitted changes Untracked files
-    ./fboender/scriptform: Uncommitted changes
-    ./fboender/startpage: ok
+    ./megacorp/ansible Ok
+    ./megacorp/monitoring Ok
+    ./fboender/multi-git-status Ok
+    ./fboender/mdpreview Ok
+    ./fboender/snippets Ok
+    ./fboender/boxes Ok
+    ./fboender/ansible-cmdb Untracked files Uncommitted changes
+    ./fboender/scriptform Uncommitted changes
+    ./fboender/startpage Ok
 
 # Installation
 
