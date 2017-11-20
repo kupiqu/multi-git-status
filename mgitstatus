@@ -155,10 +155,11 @@ for PROJ_DIR in $DIR_LIST; do
     if [ \! -z "$NEEDS_PUSH_BRANCHES" ]; then
         STATUS_NEEDS="${STATUS_NEEDS}${C_NEEDS_PUSH}Needs push($NEEDS_PUSH_BRANCHES)${C_RESET} "
     fi
-    if [ "$STATUS_NEEDS" = "" ]; then
-        STATUS_NEEDS="${STATUS_NEEDS}${C_OK}Ok${C_RESET} "
+    if [ "$STATUS_NEEDS" != "" ]; then
+        STATUS_NEEDS="${STATUS_NEEDS:: -1}"
+    else
+        STATUS_NEEDS="${STATUS_NEEDS}${C_OK}Ok${C_RESET}"
     fi
-
     # Print the output
     printf "$STATUS_NEEDS\n"
 done
