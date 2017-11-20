@@ -42,7 +42,7 @@ fi
 if [ -z "$1" ]; then
     # ROOT_DIR="."
     # Using locate to automatically find all .git dirs in database
-    DIR_LIST=$(locate -Lbr '\.git$'  | rev | cut -c 6- | rev)
+    DIR_LIST=$(locate -Lbr '\.git$'  | rev | cut -c 6- | rev | sort)
 else
     ROOT_DIR=$1
     if [ -z "$2" ]; then
