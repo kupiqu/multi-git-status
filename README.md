@@ -1,7 +1,7 @@
 Multi-git-status
 ================
 
-Show uncommited, untracked and unpushed changes in multiple Git repositories.
+Show uncommitted, untracked and unpushed changes in multiple Git repositories.
 
 ![](https://raw.githubusercontent.com/kupiqu/multi-git-status/master/screenshot.png)
 
