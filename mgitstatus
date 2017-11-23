@@ -149,7 +149,7 @@ for PROJ_DIR in $DIR_LIST; do
         STATUS_NEEDS="${STATUS_NEEDS}${C_NEEDS_PULL}⇣($NEEDS_PULL_BRANCHES)${C_RESET} "
     fi
     if [ "$UNTRACKED" != "" ]; then
-        STATUS_NEEDS="${STATUS_NEEDS}${C_UNTRACKED}~${C_RESET} "
+        STATUS_NEEDS="${STATUS_NEEDS}${C_UNTRACKED}?${C_RESET} "
     fi
     if [ "$UNSTAGED" -ne 0 -o "$UNCOMMITTED" -ne 0 ]; then
         STATUS_NEEDS="${STATUS_NEEDS}${C_NEEDS_COMMIT}⇢${C_RESET} "
